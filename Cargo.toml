@@ -1,0 +1,15 @@
+[package]
+name = "aes_s"
+version = "0.1.0"
+authors = ["Ivano Donadi <ivadonadi98@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dev-dependencies]
+
+criterion = "0.3.0"
+
+[[bench]]
+name = "my_benchmark"
+harness = false
