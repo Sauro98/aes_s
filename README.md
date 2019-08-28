@@ -35,7 +35,12 @@ fn main() {
 
     //here result holds the crypted content
 
-
 }
 
 ```
+
+
+
+## Contribution
+
+This project is meant as an exercise to learn rust.     Any tips regarding best practices and semantics are very welcome.     Any help in improving performance or resources to study to achieve that goal are also very much appreciated.
