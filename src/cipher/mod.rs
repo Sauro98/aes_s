@@ -26,7 +26,7 @@ impl Cipher {
         }
     }
 
-    pub fn cipher(&mut self, input: &mut [u8; 16]) {
+    pub fn cipher(&self, input: &mut [u8; 16]) {
         AesMatrix::add_round_key_8(input, self.key_manager.next_words(0));
         for round in 0..self.key_manager.rounds() - 1 {
             AesMatrix::substitute_bytes_8(input);
@@ -42,7 +42,7 @@ impl Cipher {
         );
     }
 
-    pub fn decipher(&mut self, input: &mut [u8; 16]) {
+    pub fn decipher(&self, input: &mut [u8; 16]) {
         AesMatrix::add_round_key_8(
             input,
             self.key_manager.next_words(self.key_manager.rounds() * 4),
