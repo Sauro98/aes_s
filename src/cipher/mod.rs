@@ -3,11 +3,21 @@ use crate::key_manager::KeyManager;
 
 mod cipher_test;
 
+/**
+ * Struct to cipher or decipher a 4x4 array of bytes given
+ * a key, wich can be 4 words long (128 bits), 6 words long
+ * (192 bits) or 8 words lorg (256 bit). Here word is intended
+ * as 4 bytes (32 bits).  
+ */
 pub struct Cipher {
     key_manager: KeyManager,
 }
 
 impl Cipher {
+    /**
+     * Initializes the cipher based on key length
+     */
+
     pub fn new_128(key: &[u32; 4]) -> Cipher {
         Cipher {
             key_manager: KeyManager::new_128(key),
@@ -26,6 +36,10 @@ impl Cipher {
         }
     }
 
+    /**
+     * Ciphers a 4x4 matrix of bytes in the format described in the 'aes_matrix'
+     * module following the AES encryption standard. The procedure is the same regardless of key length
+     */
     pub fn cipher(&self, input: &mut [u8; 16]) {
         AesMatrix::add_round_key_8(input, self.key_manager.next_words(0));
         for round in 0..self.key_manager.rounds() - 1 {
@@ -42,6 +56,13 @@ impl Cipher {
         );
     }
 
+    /**
+     * Deciphers a 4x4 matrix of bytes in the format described in the 'aes_matrix'
+     * module following the AES encryption standard.
+     * The procedure is the same regardless of key length.
+     * This is not the straight decipher but what the AES documentation
+     * refers to as the'equivalent inverse cipher'
+     */
     pub fn decipher(&self, input: &mut [u8; 16]) {
         AesMatrix::add_round_key_8(
             input,

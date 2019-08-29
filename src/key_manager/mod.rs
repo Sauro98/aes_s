@@ -3,11 +3,19 @@ use crate::math::Math;
 
 mod key_manager_test;
 
+/**
+ * Round constant as described in the AES standard, used to expand the key.
+ */
 static ROUND_CONSTANT: [u32; 10] = [
     0x01000000, 0x02000000, 0x04000000, 0x08000000, 0x10000000, 0x20000000, 0x40000000, 0x80000000,
     0x1B000000, 0x36000000,
 ];
 
+/**
+ * Object used by the cipher to encrypt and decrypt data.
+ * It holds the number of encryption rounds and the keys
+ * needed to both encrypt and decrypt.
+ */
 pub struct KeyManager {
     rounds: usize,
     key: Vec<u32>,
@@ -15,6 +23,10 @@ pub struct KeyManager {
 }
 
 impl KeyManager {
+    /**
+     * Initializes the object based on key length
+     */
+
     pub fn new_128(in_key: &[u32; 4]) -> KeyManager {
         let (key, inverse_key) = Self::expand_key_128(in_key);
         KeyManager {
@@ -42,6 +54,16 @@ impl KeyManager {
         }
     }
 
+    /**
+     * The expansion procedure for 128 and 192 bits long keys is the
+     * same but I've kept it in separate functions because otherwise
+     * I felt that the expansion function would be ugli with 4 parameters
+     * plus the return type and not being able to express the length of
+     * the array in input.
+     *
+     * This function generates both the encryption key and the key for the
+     * quivalent inverse cipher.
+     */
     fn expand_key_128(key: &[u32; 4]) -> (Vec<u32>, Vec<u32>) {
         let nk = 4;
         let nr = 10;
@@ -66,6 +88,10 @@ impl KeyManager {
         (expanded_key, expanded_key_inverse)
     }
 
+    /**
+     * The expansion procedure for the 256 bit long key is a bit different from the
+     * one for the other lengths so I've kept it separate.
+     */
     fn expand_key_256(key: &[u32; 8]) -> (Vec<u32>, Vec<u32>) {
         let mut expanded_key: Vec<u32> = Vec::new();
         for i in 0..8 {
@@ -76,6 +102,15 @@ impl KeyManager {
         (expanded_key, expanded_key_inverse)
     }
 
+    /**
+     * The inverse key is just the original but with the
+     * inverse_mix_columns transformation applied to every
+     * word as a column. The first and last element of this
+     * key actually shouldn't be transformed but since the struct holds
+     * the non-transformed key too and this isn't a function that gets called
+     * often I decided to leave that pretty looking loop even if it transfroms
+     * the whole key
+     */
     fn produce_inverse_key(key: &Vec<u32>) -> Vec<u32> {
         let mut expanded_key_inverse = Vec::new();
         for word in key {
@@ -86,6 +121,12 @@ impl KeyManager {
         expanded_key_inverse
     }
 
+    /**
+     * This is the actual meat of the expansion process for 128 and 192 bits
+     * long keys. key is a borrow of the vector containing only the original key words,
+     * nk is the number of words in the key (4 if 128, 6 if 192) and nr is the
+     * same number of rounds that is held in the rounds attribute of the struct.
+     */
     fn populate_key_128_192(key: &mut Vec<u32>, nk: usize, nr: usize) {
         for i in nk..(4 * (nr + 1)) {
             let mut temp = key[i - 1];
@@ -99,6 +140,12 @@ impl KeyManager {
         }
     }
 
+    /**
+     * This is the actual meat of the expansion process for 256 bits
+     * long keys. key is a borrow of the vector containing only the original key words,
+     * nk is the number of words in the key (4 if 128, 6 if 192) and nr is the
+     * same number of rounds that is held in the rounds attribute of the struct.
+     */
     fn populate_key_256(key: &mut Vec<u32>) {
         let nk = 8;
         let nr = 14;

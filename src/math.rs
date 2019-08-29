@@ -1,3 +1,7 @@
+/**
+ * Values of the secure box for every byte. The correct value for each byte is located
+ * at S_BOX[byte]
+ */
 pub static S_BOX: [u8; 256] = [
     0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
     0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
@@ -17,6 +21,10 @@ pub static S_BOX: [u8; 256] = [
     0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16,
 ];
 
+/**
+ * Values of the inverse secure box for every byte. The correct value for each byte is located
+ * at INV_S_BOX[byte]
+ */
 pub static INV_S_BOX: [u8; 256] = [
     0x52, 0x09, 0x6a, 0xd5, 0x30, 0x36, 0xa5, 0x38, 0xbf, 0x40, 0xa3, 0x9e, 0x81, 0xf3, 0xd7, 0xfb,
     0x7c, 0xe3, 0x39, 0x82, 0x9b, 0x2f, 0xff, 0x87, 0x34, 0x8e, 0x43, 0x44, 0xc4, 0xde, 0xe9, 0xcb,
@@ -39,6 +47,10 @@ pub static INV_S_BOX: [u8; 256] = [
 pub struct Math {}
 
 impl Math {
+    /**
+     * This is the multiplication by 0x02 in the GF2 field as
+     * described in the AES standard.
+     */
     #[inline]
     pub fn x_time(val: u8) -> u8 {
         if val > 0x7f {
@@ -47,6 +59,21 @@ impl Math {
             val << 1
         }
     }
+
+    /**
+     * The multiplication by a value in the GF2 field can be obtained as such:
+     * If we want to do a * b then we take each bit in b which is set to 1 and
+     * for each of those bit we multiply 'a' by 0x02 (x_time) a number of times equal
+     * to the position of that bit starting at the right and then we xor all of those results.
+     *
+     * If we want to multiply a by 0x03 then we must consider that 0x03 = 0000 0011, with the bits
+     * in positions 0 and 1 set to 1. So we must multiply 'a' by 0x02 0 times (a) and 1 time (x_time(a))
+     * and then xor the two results. In the end we get a * 0x03 = a ^ x_time(a)
+     *
+     * If instead we want to multiply a by 0x0d then we must consider that 0x0d = 0000 1101, with the
+     * bits in position 0, 2 and 3 set to one. The result will then be:
+     * a * 0x0d = a ^ x_time(x_time(a)) ^ x_time(x_time(x_time(a)))
+     */
 
     #[inline]
     pub fn multiplication_by_03(val: u8) -> u8 {
@@ -69,6 +96,11 @@ impl Math {
     }
 
     #[inline]
+    pub fn multiplication_by_0b(val: u8) -> u8 {
+        val ^ Self::x_time(val) ^ Self::x_time(Self::x_time(Self::x_time(val)))
+    }
+
+    #[inline]
     fn x_time_x3(val: u8) -> u8 {
         Self::x_time(Self::x_time(Self::x_time(val)))
     }
@@ -78,11 +110,9 @@ impl Math {
         Self::x_time(Self::x_time(val))
     }
 
-    #[inline]
-    pub fn multiplication_by_0b(val: u8) -> u8 {
-        val ^ Self::x_time(val) ^ Self::x_time(Self::x_time(Self::x_time(val)))
-    }
-
+    /**
+     * Substitutes each byte in a word with the corresponding byte in the secure box
+     */
     pub fn substitute_bytes_word(word: &mut u32) {
         let mut new_val: u32 = 0x00;
         new_val = new_val | ((S_BOX[((*word >> 24) & 0xff) as usize] as u32) << 24);
@@ -92,6 +122,9 @@ impl Math {
         *word = new_val;
     }
 
+    /**
+     * rorates a word 8 bits to the left with carry
+     */
     pub fn rot_word(word: &mut u32) {
         let carry: u32 = (*word & 0xff000000) >> 24;
         *word = (*word << 8) | carry;
@@ -116,6 +149,7 @@ mod tests {
     }
 }
 
+// useful qhen debugging to print a 4 words array as hex
 /*macro_rules! vof {
     ($x: expr) => {
         vec_of_four::new($x)

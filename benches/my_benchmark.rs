@@ -73,53 +73,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     });
 
     //// -256- ////
-    /*c.bench_function("read from file", |b| {
-        b.iter(|| {
-            black_box({
-                let key_128 = [0x00112233, 0x44556677, 0x8899AABB, 0xCCDDEEFF];
-                let cipher = Cipher::new_128(&key_128);
 
-                let mut f = File::open("benches/foo.txt").unwrap();
-                let mut buffer = [0; 16];
-                let mut result = Vec::new();
-
-                let mut count = f.read(&mut buffer).unwrap();
-                while count != 0 {
-                    cipher.cipher(&mut buffer);
-                    result.extend_from_slice(&buffer);
-                    buffer = [0; 16];
-                    count = f.read(&mut buffer).unwrap();
-                }
-
-                let mut buffer = File::create("benches/foo.cpt").unwrap();
-                buffer.write_all(&result).unwrap();
-            })
-        })
-    });
-
-    c.bench_function("read from file dec", |b| {
-        b.iter(|| {
-            black_box({
-                let key_128 = [0x00112233, 0x44556677, 0x8899AABB, 0xCCDDEEFF];
-                let cipher = Cipher::new_128(&key_128);
-
-                let mut f = File::open("benches/foo.cpt").unwrap();
-                let mut buffer = [0; 16];
-                let mut result = Vec::new();
-
-                let mut count = f.read(&mut buffer).unwrap();
-                while count != 0 {
-                    cipher.decipher(&mut buffer);
-                    result.extend_from_slice(&buffer);
-                    buffer = [0; 16];
-                    count = f.read(&mut buffer).unwrap();
-                }
-
-                let mut buffer = File::create("benches/foo.txt").unwrap();
-                buffer.write_all(&result).unwrap();
-            })
-        })
-    });*/
 }
 
 criterion_group!(benches, criterion_benchmark);
